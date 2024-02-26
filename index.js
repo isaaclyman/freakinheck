@@ -1,6 +1,6 @@
 const config = {
   basePerspectiveDuration: 120,
-  charFadeDuration: 10,
+  charFadeDuration: 7,
   maxFontSize: 30,
   message: "FREAKIN HECK ",
   minFontSize: 4,
@@ -8,6 +8,7 @@ const config = {
 };
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz";
+const filledXPositions = [];
 
 (function main() {
   const bodyWidth = document.body.offsetWidth;
@@ -21,14 +22,18 @@ const alphabet = "abcdefghijklmnopqrstuvwxyz";
     if (document.visibilityState === "visible") {
       createLine();
     }
-  }, 4000 / startingLines);
+  }, 8000 / startingLines);
 })();
 
 /*
   Text lines and animations
 */
 
-function createLine() {
+function createLine(retries = 0) {
+  if (retries > 5) {
+    return;
+  }
+
   const bodyWidth = document.body.offsetWidth;
   const bodyHeight = document.body.offsetHeight;
 
@@ -40,6 +45,22 @@ function createLine() {
     Math.random() * (config.maxFontSize - config.minFontSize) +
       config.minFontSize
   );
+
+  if (
+    filledXPositions.some(
+      ([otherX, otherSize]) => Math.abs(otherX - x0) < Math.max(otherSize, size)
+    )
+  ) {
+    createLine(++retries);
+    return;
+  }
+
+  const position = [x0, size];
+  filledXPositions.push(position);
+  setTimeout(() => {
+    filledXPositions.splice(filledXPositions.indexOf(position), 1);
+  }, 10_000);
+
   const speed = 220 / size;
 
   const traceline = document.createElement("div");
@@ -64,9 +85,19 @@ function createLine() {
     );
   }, config.tracerChangeInterval);
 
-  let outOfBounds = false;
   const t0 = document.timeline.currentTime;
-
+  
+  let endTraceline = false;
+  perspectiveMove({
+    el: traceline,
+    size,
+    x0,
+    t0,
+    bodyWidth,
+    shouldStop: () => endTraceline,
+  });
+  
+  let outOfBounds = false;
   leaveChar({
     el: tracer,
     container: traceline,
@@ -87,15 +118,46 @@ function createLine() {
       tracer.remove();
 
       setTimeout(() => {
+        endTraceline = true;
         traceline.remove();
       }, (config.charFadeDuration + 1) * 1000);
     }
   }, 1000);
 }
 
+function perspectiveMove({ el, size, x0, t0, bodyWidth, shouldStop }) {
+  requestAnimationFrame(() => {
+    const elapsed = document.timeline.currentTime - t0;
+
+    // Move left/right
+    const centerX = bodyWidth / 2 - size / 2;
+    const shouldMoveRight = x0 > centerX;
+    const totalDistance = shouldMoveRight ? bodyWidth - centerX : centerX;
+    const distancePerSecond = totalDistance / config.basePerspectiveDuration;
+
+    const distance = distancePerSecond * (elapsed / 1000);
+    const scaledDistance =
+      distance *
+      // (size / config.maxFontSize) *
+      ((Math.abs(el.offsetLeft - centerX) / centerX)) *
+      (shouldMoveRight ? 1 : -1);
+    el.style.setProperty("left", x0 + scaledDistance + "px");
+
+    // Move closer to viewer
+    const growthPerSecond = 2;
+    const growth = growthPerSecond * (elapsed / 1000);
+    const scaledGrowth = growth * (size / config.maxFontSize);
+    el.style.setProperty("font-size", size + scaledGrowth + "px");
+
+    if (!shouldStop()) {
+      perspectiveMove({ el, size, x0, t0, bodyWidth, shouldStop });
+    }
+  });
+}
+
 function leaveChar({ el, container, size, t0, lastEl, messageIx, shouldStop }) {
   requestAnimationFrame(() => {
-    messageIx = messageIx || (Math.floor(Math.random() * config.message.length));
+    messageIx = messageIx || Math.floor(Math.random() * config.message.length);
 
     const vMargin = 0.2 * size;
     const currentX = el.offsetLeft;
@@ -114,9 +176,7 @@ function leaveChar({ el, container, size, t0, lastEl, messageIx, shouldStop }) {
         config.charFadeDuration + "s"
       );
 
-      let hasFaded = false;
       setTimeout(() => {
-        hasFaded = true;
         nextEl.remove();
       }, (config.charFadeDuration + 1) * 1000);
 

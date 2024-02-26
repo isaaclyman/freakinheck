@@ -63,7 +63,11 @@ body {
   char fade
 */
 @keyframes fadeout {
-  from {
+  0% {
+    color: white;
+    text-shadow: 0 0 4px white;
+  }
+  10% {
     color: #72fd73;
     text-shadow: 0 0 4px #72fd73;
   }
