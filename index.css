@@ -45,37 +45,44 @@ body {
 /*
   font
 */
+
 @font-face {
   font-family: "Matrix";
-  src: url("fonts/matrix_code_nfi.ttf"), url("fonts/matrix_code_nfi.otf") format("opentype");
+  src: url("fonts/matrix_code_nfi.ttf"),
+    url("fonts/matrix_code_nfi.otf") format("opentype");
 }
+
 /*
   rain (top to bottom)
 */
+
 @keyframes rain {
   from {
     top: -10%;
   }
+
   to {
     top: 105%;
   }
 }
+
 /*
   char fade
 */
+
 @keyframes fadeout {
   0% {
     color: white;
     text-shadow: 0 0 4px white;
   }
+
   10% {
     color: #72fd73;
     text-shadow: 0 0 4px #72fd73;
   }
+
   to {
     color: black;
     text-shadow: 0 0 4px black;
   }
 }
-
-/*# sourceMappingURL=index.css.map */
