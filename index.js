@@ -67,6 +67,7 @@ function createLine(retries = 0) {
   traceline.classList.add("traceline");
   traceline.style.setProperty("left", x0 + "px");
   traceline.style.setProperty("font-size", size + "px");
+  traceline.style.setProperty("transform", "scale(1)");
   document.body.appendChild(traceline);
 
   const tracer = document.createElement("div");
@@ -86,7 +87,7 @@ function createLine(retries = 0) {
   }, config.tracerChangeInterval);
 
   const t0 = document.timeline.currentTime;
-  
+
   let endTraceline = false;
   perspectiveMove({
     el: traceline,
@@ -96,7 +97,7 @@ function createLine(retries = 0) {
     bodyWidth,
     shouldStop: () => endTraceline,
   });
-  
+
   let outOfBounds = false;
   leaveChar({
     el: tracer,
@@ -138,16 +139,14 @@ function perspectiveMove({ el, size, x0, t0, bodyWidth, shouldStop }) {
     const distance = distancePerSecond * (elapsed / 1000);
     const scaledDistance =
       distance *
-      // (size / config.maxFontSize) *
-      ((Math.abs(el.offsetLeft - centerX) / centerX)) *
+      (Math.abs(el.offsetLeft - centerX) / centerX) *
       (shouldMoveRight ? 1 : -1);
     el.style.setProperty("left", x0 + scaledDistance + "px");
 
     // Move closer to viewer
-    const growthPerSecond = 2;
-    const growth = growthPerSecond * (elapsed / 1000);
-    const scaledGrowth = growth * (size / config.maxFontSize);
-    el.style.setProperty("font-size", size + scaledGrowth + "px");
+    const growthMultiple = elapsed / 1000;
+    const scaledGrowth = 0.01 * (size / config.maxFontSize) * growthMultiple;
+    el.style.setProperty("transform", `scale(${1 + scaledGrowth})`);
 
     if (!shouldStop()) {
       perspectiveMove({ el, size, x0, t0, bodyWidth, shouldStop });
