@@ -1,0 +1,1 @@
+[freakinheck.party](https://github.com/isaaclyman/freakinheck) © 2024 by [Isaac Lyman](https://isaaclyman.com) is licensed under [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/).
