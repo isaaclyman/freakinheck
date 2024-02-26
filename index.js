@@ -158,7 +158,6 @@ function leaveChar({ el, container, size, t0, lastEl, messageIx, shouldStop }) {
     messageIx = messageIx || Math.floor(Math.random() * config.message.length);
 
     const vMargin = Math.max(0.2 * size, 2);
-    const currentX = el.offsetLeft;
     const currentY = el.offsetTop;
     const shouldLeaveChar =
       !lastEl || currentY > lastEl.offsetTop + size + vMargin;
@@ -167,7 +166,6 @@ function leaveChar({ el, container, size, t0, lastEl, messageIx, shouldStop }) {
       const nextEl = document.createElement("div");
       container.appendChild(nextEl);
       nextEl.classList.add("char");
-      nextEl.style.setProperty("left", currentX + "px");
       nextEl.style.setProperty("top", currentY + "px");
       nextEl.style.setProperty(
         "animation-duration",
