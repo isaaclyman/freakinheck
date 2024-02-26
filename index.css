@@ -9,6 +9,13 @@ body {
   width: 100vw;
 }
 
+.traceline {
+  display: inline-block;
+  height: 100vh;
+  position: absolute;
+  width: 0;
+}
+
 .tracer {
   animation-fill-mode: forwards;
   animation-name: rain;

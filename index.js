@@ -1,6 +1,6 @@
 const config = {
-  basePerspectiveDuration: 60,
-  charFadeDuration: 5,
+  basePerspectiveDuration: 120,
+  charFadeDuration: 10,
   maxFontSize: 30,
   message: "FREAKIN HECK ",
   minFontSize: 4,
@@ -42,12 +42,16 @@ function createLine() {
   );
   const speed = 220 / size;
 
+  const traceline = document.createElement("div");
+  traceline.classList.add("traceline");
+  traceline.style.setProperty("left", x0 + "px");
+  traceline.style.setProperty("font-size", size + "px");
+  document.body.appendChild(traceline);
+
   const tracer = document.createElement("div");
   tracer.classList.add("tracer");
 
-  document.body.appendChild(tracer);
-  tracer.style.setProperty("font-size", size + "px");
-  tracer.style.setProperty("left", x0 + "px");
+  traceline.appendChild(tracer);
   tracer.style.setProperty("animation-duration", speed + "s");
 
   let alphabetIx = Math.floor(Math.random() * alphabet.length);
@@ -62,16 +66,10 @@ function createLine() {
 
   let outOfBounds = false;
   const t0 = document.timeline.currentTime;
-  perspectiveMove({
-    el: tracer,
-    size,
-    x0,
-    t0,
-    shouldStop: () => outOfBounds,
-  });
 
   leaveChar({
     el: tracer,
+    container: traceline,
     size,
     t0,
     shouldStop: () => outOfBounds,
@@ -87,41 +85,17 @@ function createLine() {
       clearInterval(tracerChange);
       clearInterval(checkOutOfBounds);
       tracer.remove();
+
+      setTimeout(() => {
+        traceline.remove();
+      }, (config.charFadeDuration + 1) * 1000);
     }
   }, 1000);
 }
 
-function perspectiveMove({ el, size, x0, t0, shouldStop }) {
+function leaveChar({ el, container, size, t0, lastEl, messageIx, shouldStop }) {
   requestAnimationFrame(() => {
-    const elapsed = document.timeline.currentTime - t0;
-
-    // Move left/right
-    const bodyWidth = document.body.offsetWidth;
-    const centerX = bodyWidth / 2 - size / 2;
-    const shouldMoveRight = x0 > centerX;
-    const totalDistance = shouldMoveRight ? bodyWidth - centerX : centerX;
-    const distancePerSecond = totalDistance / config.basePerspectiveDuration;
-
-    const distance = distancePerSecond * (elapsed / 1000);
-    const scaledDistance =
-      distance * (size / config.maxFontSize) * (shouldMoveRight ? 1 : -1);
-    el.style.setProperty("left", x0 + scaledDistance + "px");
-
-    // Move closer to viewer
-    const growthPerSecond = 1;
-    const growth = growthPerSecond * (elapsed / 1000);
-    const scaledGrowth = growth * (size / config.maxFontSize);
-    el.style.setProperty("font-size", size + scaledGrowth + "px");
-
-    if (!shouldStop()) {
-      perspectiveMove({ el, size, x0, t0, shouldStop });
-    }
-  });
-}
-
-function leaveChar({ el, size, t0, lastEl, messageIx, shouldStop }) {
-  requestAnimationFrame(() => {
-    messageIx = messageIx || 0;
+    messageIx = messageIx || (Math.floor(Math.random() * config.message.length));
 
     const vMargin = 0.2 * size;
     const currentX = el.offsetLeft;
@@ -131,11 +105,10 @@ function leaveChar({ el, size, t0, lastEl, messageIx, shouldStop }) {
 
     if (shouldLeaveChar) {
       const nextEl = document.createElement("div");
-      document.body.appendChild(nextEl);
+      container.appendChild(nextEl);
       nextEl.classList.add("char");
       nextEl.style.setProperty("left", currentX + "px");
       nextEl.style.setProperty("top", currentY + "px");
-      nextEl.style.setProperty("font-size", size + "px");
       nextEl.style.setProperty(
         "animation-duration",
         config.charFadeDuration + "s"
@@ -148,20 +121,11 @@ function leaveChar({ el, size, t0, lastEl, messageIx, shouldStop }) {
       }, (config.charFadeDuration + 1) * 1000);
 
       nextEl.innerText = config.message[++messageIx % config.message.length];
-
-      perspectiveMove({
-        el: nextEl,
-        size,
-        x0: currentX,
-        t0: document.timeline.currentTime,
-        shouldStop: () => shouldStop() || hasFaded,
-      })
-
       lastEl = nextEl;
     }
 
     if (!shouldStop()) {
-      leaveChar({ el, size, t0, lastEl, messageIx, shouldStop });
+      leaveChar({ el, container, size, t0, lastEl, messageIx, shouldStop });
     }
   });
 }
