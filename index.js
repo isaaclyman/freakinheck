@@ -35,7 +35,6 @@ function createLine(retries = 0) {
   }
 
   const bodyWidth = document.body.offsetWidth;
-  const bodyHeight = document.body.offsetHeight;
 
   const minX = 0.05 * bodyWidth;
   const maxX = bodyWidth - minX;
@@ -109,14 +108,14 @@ function createLine(retries = 0) {
 
   const checkOutOfBounds = setInterval(() => {
     if (
-      tracer.offsetTop > bodyHeight ||
+      tracer.offsetTop > document.body.offsetHeight ||
       tracer.offsetLeft < -1 * config.maxFontSize ||
-      tracer.offsetLeft > bodyWidth
+      tracer.offsetLeft > document.body.offsetWidth
     ) {
       outOfBounds = true;
+      tracer.remove();
       clearInterval(tracerChange);
       clearInterval(checkOutOfBounds);
-      tracer.remove();
 
       setTimeout(() => {
         endTraceline = true;
