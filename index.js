@@ -158,7 +158,7 @@ function leaveChar({ el, container, size, t0, lastEl, messageIx, shouldStop }) {
   requestAnimationFrame(() => {
     messageIx = messageIx || Math.floor(Math.random() * config.message.length);
 
-    const vMargin = 0.2 * size;
+    const vMargin = Math.max(0.2 * size, 2);
     const currentX = el.offsetLeft;
     const currentY = el.offsetTop;
     const shouldLeaveChar =
